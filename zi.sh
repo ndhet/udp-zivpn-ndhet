@@ -378,22 +378,33 @@ function updateConfigJson(password, action) {
 
 // 1. Create Account
 app.all('/create/zivpn', async (req, res) => {
-    const password = req.query.password || req.body.password;
+    const username = req.query.username || req.body.username;
     const days = req.query.exp || req.body.exp;
-
-    if (!password || !days) {
-        return res.status(400).json({ status: 'error', message: 'Password and exp (days) are required.' });
+    let limit = req.query.ip_limit || req.body.ip_limit;
+    
+    if (!username || !days) {
+        return res.status(400).json({ status: 'error', message: 'Username and exp (days) are required.' });
     }
+
+    if (limit === "0") limit = "∞"; // Infinite limit
+    if (!limit) limit = "1"; // Default limit
 
     if (fs.existsSync(DB_FILE)) {
         const dbContent = fs.readFileSync(DB_FILE, 'utf8');
         const lines = dbContent.split('\n');
         for (const line of lines) {
              const parts = line.split('|');
-             if (parts.length >= 2 && parts[1] === password) {
-                 return res.status(400).json({ status: 'error', message: `Error: Password '${password}' already exists.` });
+             if (parts.length >= 1 && parts[0] === username) {
+                 return res.status(400).json({ status: 'error', message: `Error: Username '${username}' already exists.` });
              }
         }
+    }
+
+    // Generate random 16 char password
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let password = '';
+    for (let i = 0; i < 16; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
 
     const expiryDate = new Date();
@@ -401,10 +412,7 @@ app.all('/create/zivpn', async (req, res) => {
     const isoDate = expiryDate.toISOString().slice(0, 10); 
     const expString = `${isoDate} 00:00`;
     
-    const user = password; 
-    const limit = "1";
-
-    const newLine = `${user}|${password}|${expString}|${limit}\n`;
+    const newLine = `${username}|${password}|${expString}|${limit}\n`;
     
     fs.appendFileSync(DB_FILE, newLine);
     updateConfigJson(password, 'add');
@@ -412,7 +420,7 @@ app.all('/create/zivpn', async (req, res) => {
     const msg = `📢 *_PEMBELIAN BERHASIL_*
 ────────────────────
 🌐 Domain        : ${DOMAIN}
-👤 Username      : ${user}
+👤 Username      : ${username}
 🔐 Password      : ${password}
 ⏳ Expired       : ${expString}
 📆 Aktif Selama  : ${days} Hari
@@ -426,7 +434,13 @@ Created via API`;
     restartService(() => {
         res.json({
             status: 'success',
-            message: `Success: Account '${password}' created, expires in ${days} days.`
+            message: `Success: Account '${username}' created, Password: ${password}, expires in ${days} days.`,
+            data: {
+                username: username,
+                password: password,
+                expiry: expString,
+                ip_limit: limit
+            }
         });
     });
 });
