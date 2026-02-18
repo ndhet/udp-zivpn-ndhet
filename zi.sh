@@ -90,7 +90,7 @@ iptables -A FORWARD -p udp --sport 5667 -j ACCEPT
 netfilter-persistent save
 
 echo "[8/10] Install menu"
-wget -O /usr/bin/zivpn-menu https://raw.githubusercontent.com/sweaterpink1999/udp-zivpn-sweaterpink/main/zivpn-menu.sh
+wget -O /usr/bin/zivpn-menu https://raw.githubusercontent.com/ndhet/udp-zivpn-ndhet/main/zivpn-menu.sh
 dos2unix /usr/bin/zivpn-menu
 chmod +x /usr/bin/zivpn-menu
 
