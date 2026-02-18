@@ -1,0 +1,14 @@
+[Unit]
+Description=ZIVPN REST API Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/etc/zivpn/zivpn-api
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
