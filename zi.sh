@@ -436,10 +436,13 @@ Created via API`;
             status: 'success',
             message: `Success: Account '${username}' created, Password: ${password}, expires in ${days} days.`,
             data: {
+                domain: DOMAIN,
+                ip: SERVER_IP,
                 username: username,
                 password: password,
                 expiry: expString,
-                ip_limit: limit
+                ip_limit: limit,
+                aktif: `${days} Hari`
             }
         });
     });
